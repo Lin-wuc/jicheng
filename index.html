@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>林传钊 | 个人主页</title>
+<meta name="description" content="林传钊的个人主页 —— 集成电路设计与集成系统专业大一学生，喜欢运动、编程与游戏开发。" />
+<!--
+  个人主页 · 单文件版（HTML + CSS + 少量 JS，无任何外部依赖，双击即可打开）
+  想换头像：把下面 .avatar 里的 <span class="avatar-letter">林</span> 换成
+  <img src="avatar.jpg" alt="林传钊" />，再把图片放到同一目录即可。
+-->
+<!-- 标记 JS 可用：入场动画只在支持脚本时启用 -->
+<script>document.documentElement.classList.add('js');</script>
+<style>
+  /* ============ 主题变量 ============ */
+  :root {
+    --bg: #f6f7fb;
+    --bg-soft: #ffffff;
+    --card: rgba(255, 255, 255, .78);
+    --card-border: rgba(15, 23, 42, .08);
+    --text: #16192b;
+    --text-soft: #5a6079;
+    --accent: #4f46e5;
+    --accent-2: #06b6d4;
+    --accent-3: #ec4899;
+    --shadow: 0 18px 40px -24px rgba(23, 30, 70, .35);
+    --ring: rgba(79, 70, 229, .18);
+    --tag-bg: rgba(79, 70, 229, .09);
+    --blob-1: rgba(79, 70, 229, .35);
+    --blob-2: rgba(6, 182, 212, .32);
+    --blob-3: rgba(236, 72, 153, .22);
+  }
+
+  html[data-theme="dark"] {
+    --bg: #0b0e1a;
+    --bg-soft: #121629;
+    --card: rgba(24, 29, 48, .72);
+    --card-border: rgba(148, 163, 184, .16);
+    --text: #eef1fb;
+    --text-soft: #a2aac4;
+    --accent: #8b8cf9;
+    --accent-2: #22d3ee;
+    --accent-3: #f472b6;
+    --shadow: 0 22px 50px -26px rgba(0, 0, 0, .85);
+    --ring: rgba(139, 140, 249, .25);
+    --tag-bg: rgba(139, 140, 249, .14);
+    --blob-1: rgba(99, 102, 241, .40);
+    --blob-2: rgba(34, 211, 238, .26);
+    --blob-3: rgba(244, 114, 182, .24);
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "PingFang SC", "HarmonyOS Sans SC", "Microsoft YaHei", "Noto Sans SC",
+                 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    line-height: 1.75;
+    -webkit-font-smoothing: antialiased;
+    transition: background .45s ease, color .45s ease;
+    overflow-x: hidden;
+  }
+
+  /* 背景装饰光斑 */
+  .backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(70px);
+    opacity: .9;
+    animation: float 18s ease-in-out infinite;
+  }
+  .blob.a { width: 46vw; height: 46vw; left: -10vw; top: -12vw; background: var(--blob-1); }
+  .blob.b { width: 38vw; height: 38vw; right: -8vw; top: 6vw; background: var(--blob-2); animation-delay: -6s; }
+  .blob.c { width: 34vw; height: 34vw; left: 24vw; bottom: -14vw; background: var(--blob-3); animation-delay: -11s; }
+
+  @keyframes float {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+    50%      { transform: translate3d(2vw, 3vh, 0) scale(1.08); }
+  }
+
+  .wrap { width: min(1060px, 92vw); margin: 0 auto; }
+
+  /* ============ 顶部导航 ============ */
+  header.nav {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    background: var(--bg);
+    background: color-mix(in srgb, var(--bg) 72%, transparent);
+    border-bottom: 1px solid var(--card-border);
+  }
+  .nav-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    height: 64px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-decoration: none;
+    color: var(--text);
+    white-space: nowrap;
+  }
+  .brand .dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    box-shadow: 0 0 0 4px var(--ring);
+  }
+  nav.links { display: flex; align-items: center; gap: 4px; }
+  nav.links a {
+    color: var(--text-soft);
+    text-decoration: none;
+    font-size: 14.5px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    transition: color .2s ease, background .2s ease;
+  }
+  nav.links a:hover { color: var(--text); background: var(--tag-bg); }
+
+  .theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    border: 1px solid var(--card-border);
+    background: var(--card);
+    color: var(--text);
+    font: inherit;
+    font-size: 14px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    box-shadow: var(--shadow);
+    transition: transform .2s ease, border-color .2s ease;
+  }
+  .theme-toggle:hover { transform: translateY(-1px); border-color: var(--accent); }
+  .theme-toggle .icon { font-size: 15px; line-height: 1; }
+
+  /* ============ 首屏 ============ */
+  .hero {
+    display: grid;
+    grid-template-columns: 1.25fr .75fr;
+    gap: 34px;
+    align-items: center;
+    padding: 72px 0 40px;
+  }
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: var(--tag-bg);
+    border: 1px solid var(--card-border);
+    padding: 6px 14px;
+    border-radius: 999px;
+  }
+  h1.name {
+    margin: 18px 0 6px;
+    font-size: clamp(42px, 7vw, 66px);
+    line-height: 1.1;
+    letter-spacing: .02em;
+    background: linear-gradient(120deg, var(--accent), var(--accent-2) 55%, var(--accent-3));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .subtitle {
+    margin: 0;
+    font-size: clamp(16px, 2.2vw, 19px);
+    color: var(--text-soft);
+  }
+  .hero-quote {
+    margin: 22px 0 0;
+    padding-left: 16px;
+    border-left: 3px solid var(--accent);
+    color: var(--text-soft);
+    font-size: 15.5px;
+  }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    box-shadow: var(--shadow);
+    color: var(--text);
+  }
+  .chip .k { color: var(--text-soft); }
+
+  .avatar-card {
+    justify-self: center;
+    display: grid;
+    place-items: center;
+    gap: 14px;
+    text-align: center;
+  }
+  .avatar {
+    width: min(230px, 52vw);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(140deg, var(--accent), var(--accent-2) 60%, var(--accent-3));
+    box-shadow: 0 26px 50px -24px var(--accent), 0 0 0 10px var(--ring);
+    overflow: hidden;
+  }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .avatar-letter {
+    font-size: clamp(72px, 15vw, 104px);
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: .04em;
+    text-shadow: 0 6px 20px rgba(0, 0, 0, .28);
+  }
+  .avatar-note { font-size: 13px; color: var(--text-soft); }
+
+  /* ============ 区块通用 ============ */
+  section { padding: 46px 0; scroll-margin-top: 84px; }
+  .sec-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 22px; }
+  .sec-head h2 {
+    margin: 0;
+    font-size: clamp(22px, 3.4vw, 28px);
+    letter-spacing: .02em;
+  }
+  .sec-head .idx {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: .18em;
+  }
+  .sec-head .line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--card-border), transparent);
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    padding: 26px 28px;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  .card p { margin: 0 0 12px; }
+  .card p:last-child { margin-bottom: 0; }
+  .lead { font-size: 16.5px; }
+
+  .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+
+  .mini {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 18px;
+    padding: 22px;
+    box-shadow: var(--shadow);
+    transition: transform .25s ease, border-color .25s ease;
+  }
+  .mini:hover { transform: translateY(-4px); border-color: var(--accent); }
+  .mini .emoji { font-size: 26px; }
+  .mini h3 { margin: 10px 0 8px; font-size: 17px; }
+  .mini p { margin: 0; color: var(--text-soft); font-size: 14.5px; }
+
+  ul.clean { margin: 0; padding-left: 1.15em; color: var(--text-soft); }
+  ul.clean li { margin: 8px 0; }
+  ul.clean li strong { color: var(--text); }
+
+  .tags { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
+  .tag {
+    font-size: 14px;
+    padding: 7px 14px;
+    border-radius: 12px;
+    background: var(--tag-bg);
+    color: var(--text);
+    border: 1px solid var(--card-border);
+  }
+
+  /* 联系方式 */
+  .contact-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .contact-item {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 18px;
+    padding: 20px 22px;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .contact-item .label { font-size: 13px; letter-spacing: .1em; color: var(--text-soft); }
+  .contact-item .value { font-size: 18px; font-weight: 600; letter-spacing: .01em; }
+  .contact-item .value.mono { font-variant-numeric: tabular-nums; letter-spacing: .04em; }
+  .copy-btn {
+    align-self: flex-start;
+    margin-top: 6px;
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--accent);
+    background: transparent;
+    border: 1px dashed var(--card-border);
+    padding: 5px 12px;
+    border-radius: 999px;
+    transition: border-color .2s ease, background .2s ease;
+  }
+  .copy-btn:hover { border-color: var(--accent); background: var(--tag-bg); }
+
+  footer {
+    padding: 34px 0 46px;
+    color: var(--text-soft);
+    font-size: 13.5px;
+    text-align: center;
+    border-top: 1px solid var(--card-border);
+    margin-top: 20px;
+  }
+  footer .heart { color: var(--accent-3); }
+
+  /* 入场动画（仅在 JS 可用时启用，避免脚本被禁用时内容不可见） */
+  html.js .reveal { opacity: 0; transform: translateY(18px); transition: opacity .7s ease, transform .7s ease; }
+  html.js .reveal.in { opacity: 1; transform: none; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+    html.js .reveal { opacity: 1; transform: none; }
+    html { scroll-behavior: auto; }
+  }
+
+  /* ============ 响应式 ============ */
+  @media (max-width: 900px) {
+    .hero { grid-template-columns: 1fr; padding-top: 46px; text-align: left; }
+    .avatar-card { order: -1; justify-self: start; }
+    .grid-3, .contact-grid { grid-template-columns: 1fr 1fr; }
+    nav.links { display: none; }
+  }
+  @media (max-width: 620px) {
+    .grid-2, .grid-3, .contact-grid { grid-template-columns: 1fr; }
+    .card { padding: 22px 20px; }
+    .nav-inner { height: 58px; }
+    .theme-toggle .label { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="backdrop" aria-hidden="true">
+  <span class="blob a"></span>
+  <span class="blob b"></span>
+  <span class="blob c"></span>
+</div>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="brand" href="#top"><span class="dot"></span>林传钊 · 个人主页</a>
+    <nav class="links" aria-label="页面导航">
+      <a href="#about">关于我</a>
+      <a href="#interest">兴趣爱好</a>
+      <a href="#why">加入集协</a>
+      <a href="#contact">联系方式</a>
+    </nav>
+    <button class="theme-toggle" id="themeBtn" type="button" aria-label="切换深色 / 浅色主题">
+      <span class="icon" id="themeIcon">🌙</span><span class="label" id="themeLabel">深色</span>
+    </button>
+  </div>
+</header>
+
+<main id="top">
+  <!-- ============ 首屏 ============ -->
+  <div class="wrap hero">
+    <div>
+      <span class="eyebrow">Integrated Circuit Design</span>
+      <h1 class="name">林传钊</h1>
+      <p class="subtitle">集成电路学院 · 集成电路设计与集成系统 · 大一新生</p>
+      <p class="hero-quote">性格开朗，做事认真，喜欢尝试新事物 —— 对游戏开发和技术实践很感兴趣。</p>
+
+      <div class="chips">
+        <span class="chip"><span class="k">兴趣</span>运动 · 编程</span>
+        <span class="chip"><span class="k">方向</span>集成电路设计</span>
+        <span class="chip"><span class="k">目标</span>加入集协 · 参与科研课题</span>
+      </div>
+    </div>
+
+    <div class="avatar-card">
+      <div class="avatar">
+        <!-- 换成自己的照片：<img src="avatar.jpg" alt="林传钊" /> -->
+        <span class="avatar-letter">林</span>
+      </div>
+      <span class="avatar-note">东四 302 · 集成电路学院</span>
+    </div>
+  </div>
+
+  <!-- ============ 关于我 ============ -->
+  <section id="about" class="wrap reveal">
+    <div class="sec-head"><span class="idx">01</span><h2>关于我</h2><span class="line"></span></div>
+    <div class="card">
+      <p class="lead">
+        我是来自集成电路学院集成电路设计与集成系统专业的大一新生。性格开朗，做事认真，喜欢尝试新事物，
+        对游戏开发和技术实践很感兴趣。平时喜欢运动、钻研编程、玩游戏，也愿意学习新技能。
+        希望能加入社团，和大家一起做出有趣的作品，共同成长！
+      </p>
+    </div>
+
+    <div class="grid-2" style="margin-top:20px">
+      <div class="mini">
+        <span class="emoji">🎓</span>
+        <h3>专业学习</h3>
+        <p>集成电路设计与集成系统，从电路基础、模拟与数字电路开始，一步步打牢硬件设计的底子。</p>
+      </div>
+      <div class="mini">
+        <span class="emoji">🧪</span>
+        <h3>技术实践</h3>
+        <p>喜欢动手把想法做出来：写代码、做小项目，享受从「想到」到「跑起来」的过程。</p>
+      </div>
+      <div class="mini">
+        <span class="emoji">🎮</span>
+        <h3>游戏开发</h3>
+        <p>对游戏开发很感兴趣，正在用纯前端技术实现小游戏，琢磨玩法逻辑与交互手感。</p>
+      </div>
+      <div class="mini">
+        <span class="emoji">🌱</span>
+        <h3>学习态度</h3>
+        <p>愿意学习新技能，不怕从零开始；遇到问题先查证、再动手，把每一步都弄明白。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 兴趣爱好 ============ -->
+  <section id="interest" class="wrap reveal">
+    <div class="sec-head"><span class="idx">02</span><h2>兴趣爱好</h2><span class="line"></span></div>
+    <div class="card">
+      <div class="tags">
+        <span class="tag">🏃 运动</span>
+        <span class="tag">💻 编程</span>
+        <span class="tag">🕹️ 玩游戏</span>
+        <span class="tag">🧩 钻研理科问题</span>
+        <span class="tag">🔧 技术实践</span>
+        <span class="tag">🚀 尝试新事物</span>
+      </div>
+      <p style="margin-top:18px;color:var(--text-soft)">
+        运动让我保持精力，编程让我把想法变成现实，游戏则是我了解交互与设计的一扇窗。
+        三件事看起来不同，但都让我着迷于「规则之下的创造」。
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ 加入集协的初衷 ============ -->
+  <section id="why" class="wrap reveal">
+    <div class="sec-head"><span class="idx">03</span><h2>加入集协的初衷</h2><span class="line"></span></div>
+    <div class="grid-2">
+      <div class="card">
+        <p>
+          我对科研充满热情，高中时就喜欢钻研理科问题，享受从假设到验证的过程。
+          进入大学后，在了解到集协之后希望能加入集协，系统学习科研方法，提升逻辑思维和动手能力。
+        </p>
+        <p>
+          期待在学长学姐的指导下参与课题，与志同道合的同学一起探索未知，为未来的学术发展打下基础。
+        </p>
+      </div>
+      <div class="card">
+        <h3 style="margin:0 0 6px;font-size:17px">我期待在集协收获</h3>
+        <ul class="clean">
+          <li><strong>科研方法</strong>：从提出问题到验证结论的完整流程</li>
+          <li><strong>逻辑思维</strong>：把复杂问题拆开、讲清楚的能力</li>
+          <li><strong>动手能力</strong>：真跑得起来的代码与电路</li>
+          <li><strong>同行伙伴</strong>：一起做有趣作品、共同成长</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 联系方式 ============ -->
+  <section id="contact" class="wrap reveal">
+    <div class="sec-head"><span class="idx">04</span><h2>联系方式</h2><span class="line"></span></div>
+    <div class="contact-grid">
+      <div class="contact-item">
+        <span class="label">手机 / 微信</span>
+        <span class="value mono" id="phone">13539646872</span>
+        <button class="copy-btn" type="button" data-copy="13539646872">复制号码</button>
+      </div>
+      <div class="contact-item">
+        <span class="label">在校地址</span>
+        <span class="value">东四 302</span>
+      </div>
+      <div class="contact-item">
+        <span class="label">学院 · 专业</span>
+        <span class="value" style="font-size:16px">集成电路学院<br />集成电路设计与集成系统</span>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    © <span id="year">2026</span> 林传钊 · 用 <span class="heart">♥</span> 和 HTML / CSS 手写而成
+  </div>
+</footer>
+
+<script>
+  /* ---------- 主题切换：默认跟随系统，点击后记住选择 ---------- */
+  (function () {
+    var root = document.documentElement;
+    var btn = document.getElementById('themeBtn');
+    var icon = document.getElementById('themeIcon');
+    var label = document.getElementById('themeLabel');
+
+    function store(key, value) {
+      try { localStorage.setItem(key, value); } catch (e) { /* file:// 下可能不可用，忽略 */ }
+    }
+    function read(key) {
+      try { return localStorage.getItem(key); } catch (e) { return null; }
+    }
+
+    var saved = read('theme');
+    var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    apply(saved || (prefersDark ? 'dark' : 'light'));
+
+    function apply(mode) {
+      root.setAttribute('data-theme', mode);
+      var dark = mode === 'dark';
+      icon.textContent = dark ? '☀️' : '🌙';
+      label.textContent = dark ? '浅色' : '深色';
+    }
+
+    btn.addEventListener('click', function () {
+      var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      apply(next);
+      store('theme', next);
+    });
+  })();
+
+  /* ---------- 滚动淡入 ---------- */
+  (function () {
+    var items = document.querySelectorAll('.reveal');
+    if (!('IntersectionObserver' in window)) {
+      items.forEach(function (el) { el.classList.add('in'); });
+      return;
+    }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in');
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12 });
+    items.forEach(function (el) { io.observe(el); });
+  })();
+
+  /* ---------- 复制联系方式 ---------- */
+  (function () {
+    document.querySelectorAll('.copy-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var text = btn.getAttribute('data-copy');
+        var done = function () {
+          var old = btn.textContent;
+          btn.textContent = '已复制 ✓';
+          setTimeout(function () { btn.textContent = old; }, 1400);
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(done, done);
+        } else {
+          var ta = document.createElement('textarea');
+          ta.value = text;
+          document.body.appendChild(ta);
+          ta.select();
+          try { document.execCommand('copy'); } catch (e) {}
+          document.body.removeChild(ta);
+          done();
+        }
+      });
+    });
+  })();
+
+  /* ---------- 年份 ---------- */
+  document.getElementById('year').textContent = new Date().getFullYear();
+</script>
+</body>
+</html>
