@@ -3,19 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>贪吃蛇 · 大一招新考核（版本二：阶段二 AI 自动玩）</title>
+<title>贪吃蛇 · 大一招新考核</title>
 <!--
   ============================================================
-  贪吃蛇 · 协会招新考核作品 —— 版本二（阶段二：AI 自动玩）
+  贪吃蛇 · 协会招新考核作品
   纯前端单文件（HTML + CSS + JS），无任何框架依赖，双击即可运行。
-  本版本 = 版本一（阶段一：人类可玩）的全部内容
-           + 阶段二硬指标：AI 自动控制蛇，连续吃完 15 个食物不死
-  与版本一的差别只有「AI 自动玩」这一项，没有加入任何新增功能。
+  覆盖：
+    阶段一：人类可玩（键盘方向键 / WASD、暂停、重开、得分与胜负判定）
+    阶段二：AI 自动玩（路径规划 + 安全性检查，可连续吃满 15 个食物）
+    新增功能三件套：计分制(最高分/局数/重置) + 主题切换(深/浅,localStorage保留)
+                   + 多局战绩(最近10局)
   ============================================================
 -->
 <style>
-/* ---------- 配色：深色单套主题 ---------- */
-:root {
+/* ---------- 主题：通过 CSS 变量 + data-theme 控制（两套配色，localStorage 记忆） ---------- */
+:root, [data-theme="dark"] {
   --bg: #0f1420;
   --panel: #1a2233;
   --panel2: #222c44;
@@ -32,6 +34,24 @@
   --food: #f43f5e;
   --food-glow: rgba(244,63,94,0.45);
   --shadow: 0 20px 60px rgba(0,0,0,0.55);
+}
+[data-theme="light"] {
+  --bg: #eef1f7;
+  --panel: #ffffff;
+  --panel2: #f2f5fb;
+  --border: #dbe2ef;
+  --board-bg: #e8edf6;
+  --grid: rgba(20,30,50,0.06);
+  --text: #1b2437;
+  --text-dim: #6b7690;
+  --accent: #059669;
+  --accent2: #d97706;
+  --danger: #dc2626;
+  --head: #16a34a;
+  --body: #15803d;
+  --food: #e11d48;
+  --food-glow: rgba(225,29,72,0.35);
+  --shadow: 0 20px 50px rgba(30,40,70,0.18);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
@@ -72,7 +92,7 @@ button.primary { background: var(--accent); color: #fff; border-color: var(--acc
 button.primary:hover { filter: brightness(1.08); }
 button.ai-on { background: var(--accent2); color: #fff; border-color: var(--accent2); }
 
-/* 计分板（当前状态：得分 / 最高分 / 局数 / AI 连续吃） */
+/* 计分板（计分制：得分/最高分/局数，跨局保留） */
 .stats {
   display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 14px 0 12px;
 }
@@ -97,6 +117,7 @@ canvas {
 .overlay.show { display: flex; }
 .overlay h2 { font-size: 26px; }
 .overlay p { color: #cfd8ea; font-size: 14px; max-width: 420px; line-height: 1.6; }
+.overlay .big { font-size: 40px; font-weight: 900; }
 .overlay .badge { background: var(--accent); color:#fff; border-radius: 20px; padding: 6px 16px; font-weight:700; }
 
 .hint { margin-top: 14px; font-size: 12.5px; color: var(--text-dim); line-height: 1.7; }
@@ -105,18 +126,42 @@ canvas {
   padding: 1px 6px; font-size: 11px; font-family: inherit;
 }
 .footer { margin-top: 14px; font-size: 11.5px; color: var(--text-dim); text-align: center; }
+
+/* 战绩弹窗（多局战绩：最近10局） */
+.modal-mask {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  display: none; align-items: center; justify-content: center; z-index: 50; padding: 20px;
+}
+.modal-mask.show { display: flex; }
+.modal {
+  background: var(--panel); border: 1px solid var(--border); border-radius: 16px;
+  width: 100%; max-width: 460px; padding: 20px; box-shadow: var(--shadow);
+}
+.modal h3 { margin-bottom: 12px; font-size: 17px; }
+.records { max-height: 320px; overflow-y: auto; }
+.rec {
+  display: grid; grid-template-columns: 30px 1fr 70px 64px; gap: 8px; align-items: center;
+  background: var(--panel2); border: 1px solid var(--border); border-radius: 9px;
+  padding: 8px 12px; margin-bottom: 7px; font-size: 13px;
+}
+.rec .idx { color: var(--text-dim); font-weight: 700; }
+.rec .mode { font-size: 11px; color: var(--accent2); }
+.rec.empty { grid-template-columns: 1fr; text-align: center; color: var(--text-dim); }
+.modal .row { display:flex; justify-content: space-between; align-items:center; margin-top: 12px; }
 </style>
 </head>
-<body>
+<body data-theme="dark">
 <div class="wrap">
   <header>
     <h1>🐍 贪吃<span class="dot">蛇</span></h1>
     <div class="toolbar">
+      <button id="btnTheme" title="切换深浅主题">🌓 主题</button>
+      <button id="btnRecords" title="查看最近10局战绩">📋 战绩</button>
       <button id="btnAI" title="开启/关闭 AI 自动玩">🤖 AI 自动玩</button>
     </div>
   </header>
 
-  <!-- 状态显示：得分 / 最高分 / 局数 / AI 连续吃 -->
+  <!-- 计分制：得分 / 最高分 / 局数 / AI 连续吃数 -->
   <div class="stats">
     <div class="stat"><div class="v" id="score">0</div><div class="l">得分</div></div>
     <div class="stat highlight"><div class="v" id="best">0</div><div class="l">最高分</div></div>
@@ -137,9 +182,21 @@ canvas {
   <div class="hint">
     <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> 或 <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 移动 ·
     <kbd>空格</kbd> 暂停/继续 · <kbd>R</kbd> 重开 · 速度：<button id="btnSpeed" style="padding:2px 8px">中</button>
-    <br>得分规则：每吃 1 个食物 +10；撞墙或撞到自己则本局结束。点右上角「🤖 AI 自动玩」可让 AI 接管。
+    <br>得分规则：每吃 1 个食物 +10；撞墙或撞到自己则本局结束（计分跨局保留，可点「重置」清零）。
   </div>
-  <div class="footer">阶段一：人类可玩 · 阶段二：AI 自动吃满 15 个食物即达标</div>
+  <div class="footer">阶段一：人类可玩 · 阶段二：AI 自动吃满 15 个食物即达标 · 数据保存在本地浏览器</div>
+</div>
+
+<!-- 战绩弹窗 -->
+<div class="modal-mask" id="mask">
+  <div class="modal">
+    <h3>📋 最近 10 局战绩</h3>
+    <div class="records" id="records"></div>
+    <div class="row">
+      <button id="btnReset" style="color:var(--danger)">↺ 重置全部数据</button>
+      <button id="btnClose" class="primary">关闭</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -156,6 +213,14 @@ const AI_TARGET = 15;                // 阶段二硬指标：AI 连续吃 15 个
 const SPEEDS = { "慢": 240, "中": 160, "快": 100 };  // 速度档位
 let speedLabel = "中";
 
+const THEMES = ["dark", "light"];    // 主题：深 / 浅
+
+// localStorage 键（跨局 / 跨刷新保留数据）
+const LS_BEST   = "snake_best";
+const LS_ROUNDS = "snake_rounds";
+const LS_THEME  = "snake_theme";
+const LS_RECORDS= "snake_records";
+
 // 四方向
 const DIRS = [
   {x:0,y:-1}, {x:0,y:1}, {x:-1,y:0}, {x:1,y:0}
@@ -166,13 +231,15 @@ const DIRS = [
  * ========================================================== */
 let snake, dir, dirQueue, food;
 let score = 0;
-let best = 0;            // 本次打开页面的最高分
-let rounds = 0;          // 本次打开页面玩了几局
+let best = +localStorage.getItem(LS_BEST) || 0;
+let rounds = +localStorage.getItem(LS_ROUNDS) || 0;
+let records = JSON.parse(localStorage.getItem(LS_RECORDS) || "[]");
 let aiStreak = 0;        // AI 模式下连续吃到的食物数
 let running = false;     // 游戏是否进行中
 let paused = false;
 let mode = "human";      // 'human' | 'ai'
 let timer = null;
+let hasEatenSinceStart = false;
 
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
@@ -183,12 +250,34 @@ const elScore = $("score"), elBest = $("best"), elRounds = $("rounds"),
       elOvTitle = $("ovTitle"), elOvText = $("ovText"), elBtnStart = $("btnStart");
 
 /* ============================================================
- * 三、计分：最高分 / 局数 / 状态刷新
+ * 三、主题切换（刷新后保留）
+ * ========================================================== */
+function loadTheme() {
+  const t = localStorage.getItem(LS_THEME) || "dark";
+  document.body.dataset.theme = t;
+}
+function toggleTheme() {
+  const cur = document.body.dataset.theme;
+  const next = cur === "dark" ? "light" : "dark";
+  document.body.dataset.theme = next;
+  localStorage.setItem(LS_THEME, next);
+  draw(); // 立即重绘
+}
+
+/* ============================================================
+ * 四、计分制：最高分 / 局数 / 战绩（localStorage 持久化）
  * ========================================================== */
 function saveBest() {
-  if (score > best) best = score;
+  if (score > best) { best = score; localStorage.setItem(LS_BEST, best); }
 }
-function bumpRounds() { rounds++; }
+function bumpRounds() {
+  rounds++; localStorage.setItem(LS_ROUNDS, rounds);
+}
+function addRecord(scoreVal, modeVal) {
+  records.unshift({ score: scoreVal, len: snake ? snake.length : 1, mode: modeVal, time: new Date().toLocaleString() });
+  if (records.length > 10) records.length = 10;   // 只保留最近 10 局
+  localStorage.setItem(LS_RECORDS, JSON.stringify(records));
+}
 function refreshStats() {
   elScore.textContent = score;
   elBest.textContent = best;
@@ -197,13 +286,13 @@ function refreshStats() {
 }
 
 /* ============================================================
- * 四、游戏初始化与主循环
+ * 五、游戏初始化与主循环
  * ========================================================== */
 function initGame() {
   const cx = Math.floor(COLS/2), cy = Math.floor(ROWS/2);
   snake = [{x:cx,y:cy},{x:cx-1,y:cy},{x:cx-2,y:cy}];
   dir = {x:1,y:0}; dirQueue = [];
-  score = 0; aiStreak = 0;
+  score = 0; aiStreak = 0; hasEatenSinceStart = false;
   spawnFood();
   refreshStats();
   draw();
@@ -298,23 +387,23 @@ function gameOver(reason) {
   running = false;
   saveBest();
   bumpRounds();
+  addRecord(score, mode);
   refreshStats();
   elOverlay.classList.add("show");
   elOvTitle.textContent = "游戏结束";
-  elOvText.innerHTML = reason + "。<br>本局得分 <b>" + score + "</b>，蛇身长度 " + snake.length +
-    "，最高分 " + best + "。";
+  elOvText.innerHTML = reason + "。<br>本局得分 <b>" + score + "</b>，最高分 " + best + "，已记录到战绩。";
   elBtnStart.textContent = "再来一局";
   draw();
 }
 function winGame() {
-  clearTimer(); running = false; saveBest(); bumpRounds(); refreshStats();
+  clearTimer(); running = false; saveBest(); bumpRounds(); addRecord(score, mode); refreshStats();
   elOverlay.classList.add("show");
   elOvTitle.textContent = "🏆 通关！";
   elOvText.textContent = "棋盘被填满，你太强了！得分 " + score;
   elBtnStart.textContent = "再来一局";
 }
 function aiPass() {
-  clearTimer(); running = false; saveBest(); bumpRounds(); refreshStats();
+  clearTimer(); running = false; saveBest(); bumpRounds(); addRecord(score, mode); refreshStats();
   elOverlay.classList.add("show");
   elOvTitle.innerHTML = "🤖 AI 达标！";
   elOvText.innerHTML = '<span class="badge">阶段二硬指标达成</span><br>AI 自动连续吃满 ' + AI_TARGET +
@@ -323,7 +412,7 @@ function aiPass() {
 }
 
 /* ============================================================
- * 五、AI 自动玩（阶段二）
+ * 六、AI 自动玩（阶段二）
  *   —— 这是本作最关键、也是你要在 README 里向评委"讲清楚"的地方。
  *
  *  核心思路（防纯粘贴，理解后再复述）：
@@ -414,7 +503,7 @@ function safeAfterMove(snakeArr) {
 }
 
 /* ============================================================
- * 六、绘制（Canvas）
+ * 七、绘制（Canvas）
  * ========================================================== */
 function cssVar(n){ return getComputedStyle(document.body).getPropertyValue(n).trim(); }
 function draw() {
@@ -465,7 +554,28 @@ function draw() {
 }
 
 /* ============================================================
- * 七、AI 模式开关
+ * 八、战绩弹窗 / 重置
+ * ========================================================== */
+function renderRecords() {
+  const box = $("records");
+  if (!records.length) {
+    box.innerHTML = '<div class="rec empty">还没有战绩，去玩一局吧！</div>';
+    return;
+  }
+  box.innerHTML = records.map((r,i)=>`
+    <div class="rec">
+      <span class="idx">#${i+1}</span>
+      <span>得分 <b>${r.score}</b> · 长度 ${r.len} · <span class="mode">${r.mode==='ai'?'🤖AI':'🙋人玩'}</span><br>
+           <span style="font-size:11px;color:var(--text-dim)">${r.time}</span></span>
+      <span style="text-align:right">${r.score>=best?'🏆':''}</span>
+      <span style="text-align:right;font-size:11px;color:var(--text-dim)">${i===0?'最新':''}</span>
+    </div>`).join("");
+}
+function openModal(){ renderRecords(); $("mask").classList.add("show"); }
+function closeModal(){ $("mask").classList.remove("show"); }
+
+/* ============================================================
+ * 九、AI 模式开关
  * ========================================================== */
 function toggleAI() {
   mode = (mode === "human") ? "ai" : "human";
@@ -482,7 +592,7 @@ function toggleAI() {
 }
 
 /* ============================================================
- * 八、事件绑定
+ * 十、事件绑定
  * ========================================================== */
 document.addEventListener("keydown", e => {
   const map = { ArrowUp:{x:0,y:-1}, ArrowDown:{x:0,y:1}, ArrowLeft:{x:-1,y:0}, ArrowRight:{x:1,y:0},
@@ -503,7 +613,16 @@ document.addEventListener("keydown", e => {
 canvas.addEventListener("click", () => { if (!running) startGame(); });
 
 $("btnStart").addEventListener("click", () => { if (!running) startGame(); else { paused=false; elOverlay.classList.remove("show"); clearTimer(); timer=setInterval(tick,SPEEDS[speedLabel]); draw(); } });
+$("btnTheme").addEventListener("click", toggleTheme);
+$("btnRecords").addEventListener("click", openModal);
+$("btnClose").addEventListener("click", closeModal);
+$("mask").addEventListener("click", e => { if (e.target === $("mask")) closeModal(); });
 $("btnAI").addEventListener("click", toggleAI);
+$("btnReset").addEventListener("click", () => {
+  if (!confirm("确定清空最高分、局数和全部战绩？")) return;
+  localStorage.removeItem(LS_BEST); localStorage.removeItem(LS_ROUNDS); localStorage.removeItem(LS_RECORDS);
+  best=0; rounds=0; records=[]; saveBest(); refreshStats(); renderRecords();
+});
 $("btnSpeed").addEventListener("click", function() {
   const order = Object.keys(SPEEDS);
   speedLabel = order[(order.indexOf(speedLabel)+1) % order.length];
@@ -512,8 +631,9 @@ $("btnSpeed").addEventListener("click", function() {
 });
 
 /* ============================================================
- * 九、启动
+ * 十一、启动
  * ========================================================== */
+loadTheme();
 initGame();
 resetGame();
 </script>
