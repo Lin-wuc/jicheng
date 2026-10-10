@@ -37,3 +37,4 @@ ai给过的错误信息：消除自撞只需要禁止 180° 反向就够了。�
  12. AI 模式下方向键不响应；人类模式下 AI 的一切都不要生效。
 https://github.com/Lin-wuc/jicheng/blob/main/%E7%94%B5%E8%B7%AF%E5%9B%BE/484e604063712897616b2c92619432b4.jpg
 https://github.com/Lin-wuc/jicheng/blob/main/%E7%94%B5%E8%B7%AF%E5%9B%BE/9b648f6346bf8b324b8781c637708b1a.jpg
+https://github.com/Lin-wuc/jicheng/blob/main/%E7%94%B5%E8%B7%AF%E5%9B%BE/9c02d0f9753c3558b5b448181f050941.jpg
