@@ -36,3 +36,4 @@ ai给过的错误信息：消除自撞只需要禁止 180° 反向就够了。�
  11. AI 连续吃满 15 个时停止游戏，覆盖层标题「🤖 AI 达标！」，正文里说明这是阶段二硬指标达成、全程零人工操作；
  12. AI 模式下方向键不响应；人类模式下 AI 的一切都不要生效。
 https://github.com/Lin-wuc/jicheng/blob/main/%E7%94%B5%E8%B7%AF%E5%9B%BE/484e604063712897616b2c92619432b4.jpg
+https://github.com/Lin-wuc/jicheng/blob/main/%E7%94%B5%E8%B7%AF%E5%9B%BE/9b648f6346bf8b324b8781c637708b1a.jpg
